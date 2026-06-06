@@ -1,0 +1,5 @@
+/* basic placeholder styles for TrajAI frontend */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
