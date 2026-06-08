@@ -5,12 +5,21 @@ import * as THREE from 'three'
 import { eciToThree } from '../utils/coords'
 import { satColor, COLORS } from '../utils/colors'
 import { getRiskColor } from '../utils/collision'
+import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import * as THREE from 'three'
 
 const EARTH_RADIUS = 6.371   // in Three.js units (1 unit = 1000 km)
 
 // ── Earth sphere ─────────────────────────────────────────────────────────────
 function Earth() {
   const meshRef = useRef()
+
+  // Free NASA Blue Marble texture
+  const texture = useLoader(
+    THREE.TextureLoader,
+    'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
+  )
+
   useFrame((_, delta) => {
     if (meshRef.current) meshRef.current.rotation.y += delta * 0.05
   })
@@ -18,13 +27,7 @@ function Earth() {
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
-      <meshPhongMaterial
-        color="#1a3a6e"
-        emissive="#0a1a3a"
-        specular="#4488ff"
-        shininess={20}
-        wireframe={false}
-      />
+      <meshPhongMaterial map={texture} specular="#224488" shininess={8} />
     </mesh>
   )
 }
@@ -61,7 +64,7 @@ function OrbitLine({ points, color, opacity = 1, dashed = false }) {
     if (!points || points.length < 2) return null
     const positions = new Float32Array(points.length * 3)
     points.forEach((p, i) => {
-      positions[i * 3]     = p.x
+      positions[i * 3] = p.x
       positions[i * 3 + 1] = p.y
       positions[i * 3 + 2] = p.z
     })
@@ -81,7 +84,7 @@ function OrbitLine({ points, color, opacity = 1, dashed = false }) {
 
 // ── One satellite with all its tracks ────────────────────────────────────────
 function SatelliteTrack({ sat, currentStep, onSelect, isSelected, threatRisk }) {
-  const color     = satColor(sat.index)
+  const color = satColor(sat.index)
   const riskColor = threatRisk ? getRiskColor(threatRisk) : null
 
   // Convert all trajectory arrays to Three.js vectors
@@ -103,12 +106,12 @@ function SatelliteTrack({ sat, currentStep, onSelect, isSelected, threatRisk }) 
 
   return (
     <group>
-      {/* Historical track */}
-      <OrbitLine points={actualPts}    color={COLORS.actual}    opacity={0.5} />
-      {/* Model prediction (5 steps) */}
-      <OrbitLine points={predictedPts} color={COLORS.predicted} opacity={0.8} />
-      {/* Animated future path */}
-      <OrbitLine points={futurePts}    color={COLORS.future}    opacity={0.6} />
+      {/* Historical track — thin, dim blue */}
+      <OrbitLine points={actualPts} color="#1e40af" opacity={0.25} />
+      {/* Model prediction — bright purple, visible */}
+      <OrbitLine points={predictedPts} color="#a78bfa" opacity={0.9} />
+      {/* Animated future — bright green */}
+      <OrbitLine points={futurePts} color="#34d399" opacity={0.7} />
       {/* Current position dot */}
       <SatelliteDot
         position={[currentPos.x, currentPos.y, currentPos.z]}
